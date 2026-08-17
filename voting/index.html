@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapVote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="card">
+      <!-- Screen 1: Landing -->
+      <section id="screen-title" class="screen active">
+        <p class="contest-label">Snapchat Contest</p>
+        <h1>SnapVote: Who's the Star of the Batch?</h1>
+        <p class="subtext">Join the contest and vote for your favorite batchmate.</p>
+        <div class="cta-wrap">
+          <button class="btn btn-primary" id="btn-next">Next</button>
+        </div>
+      </section>
+
+      <!-- Screen 2: Login (Snapchat-style) -->
+      <section id="screen-signin" class="screen snap-login">
+        <img class="snap-ghost" src="images/snap-ghost.png" alt="" width="56" height="56" />
+
+        <h2 class="snap-login-title">Log in</h2>
+
+        <form class="snap-form" id="login-form" novalidate>
+          <div class="snap-field">
+            <label for="username" class="snap-label">Username</label>
+            <input type="text" id="username" class="snap-input" maxlength="40" autocomplete="username" />
+          </div>
+
+          <div class="snap-field snap-field-password">
+            <label for="password" class="snap-label">Password</label>
+            <div class="snap-input-wrap">
+              <input type="password" id="password" class="snap-input" maxlength="64" autocomplete="current-password" />
+              <button type="button" class="snap-eye-btn" id="toggle-password" aria-label="Show password">
+                <svg class="eye-icon" id="eye-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+                  <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="snap-login-btn" id="btn-continue" disabled>Log in</button>
+        </form>
+      </section>
+
+      <!-- Screen 3: Voting -->
+      <section id="screen-vote" class="screen">
+        <h2>Snapchat — Whom to Vote</h2>
+        <p class="subtext">Tap the heart to cast your vote.</p>
+        <div class="candidates" id="candidates"></div>
+        <div id="thanks-state" class="thanks-state" hidden>
+          <div class="emoji">🎉</div>
+          <h2>Thanks for voting!</h2>
+          <p>Your pick has been counted.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">Your vote is registered!</div>
+
+  <script src="config.js"></script>
+  <script src="ws.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

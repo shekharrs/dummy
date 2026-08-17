@@ -1,0 +1,7 @@
+{
+  "name": "snapvote-voting",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/generate-config.js"
+  }
+}
