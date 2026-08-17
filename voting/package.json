@@ -1,7 +1,11 @@
 {
   "name": "snapvote-voting",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "node scripts/generate-config.js"
+  },
+  "dependencies": {
+    "@vercel/kv": "^3.0.0"
   }
 }

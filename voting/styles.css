@@ -177,6 +177,26 @@ body.login-mode .card::before {
   width: 100%;
 }
 
+.snap-error-msg {
+  background: #fff0f3;
+  border: 1px solid #ffd1dc;
+  color: #e92754;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
 .snap-field {
   margin-bottom: 20px;
 }
@@ -212,6 +232,11 @@ body.login-mode .card::before {
 .snap-input:focus {
   outline: none;
   border-color: #b0b0b0;
+}
+
+.snap-input.has-error {
+  border-color: #e92754 !important;
+  background-color: #fff9fa;
 }
 
 .snap-link {

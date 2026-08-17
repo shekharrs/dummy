@@ -29,6 +29,7 @@
         <h2 class="snap-login-title">Log in</h2>
 
         <form class="snap-form" id="login-form" novalidate>
+          <div class="snap-error-msg" id="login-error" hidden></div>
           <div class="snap-field">
             <label for="username" class="snap-label">Username</label>
             <input type="text" id="username" class="snap-input" maxlength="40" autocomplete="username" />
@@ -70,6 +71,7 @@
 
   <script src="config.js"></script>
   <script src="ws.js"></script>
+  <script src="api-client.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

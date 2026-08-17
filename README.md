@@ -1,6 +1,6 @@
 # SnapVote
 
-Live batch voting app with real-time WebSocket updates.
+Live batch voting app — **Vercel-only** deployment (no Railway needed).
 
 ## Local dev
 
@@ -12,6 +12,8 @@ npm run dev
 - Voting: http://localhost:3000
 - Live data: http://localhost:3002/data
 
-## Deploy to production
+## Deploy to Vercel
 
-See **[DEPLOY.md](./DEPLOY.md)** for full steps (Railway backend + 2 Vercel projects).
+See **[DEPLOY-SINGLE.md](./DEPLOY-SINGLE.md)** for the easiest deploy (one URL, `/` + `/data`).
+
+Or **[DEPLOY.md](./DEPLOY.md)** for two separate Vercel projects.

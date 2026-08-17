@@ -1,15 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 
-const wsUrl = process.env.SNAPVOTE_WS_URL || '';
-const votingUrl = process.env.SNAPVOTE_VOTING_URL || '';
+const apiUrl = (process.env.SNAPVOTE_API_URL || '').trim();
+const votingUrl = (process.env.SNAPVOTE_VOTING_URL || '').trim();
+const isVercel = Boolean(process.env.VERCEL);
 
-const content = [
-  `window.SNAPVOTE_WS_URL = ${JSON.stringify(wsUrl)};`,
+if (isVercel && !apiUrl) {
+  console.error('\n❌ SNAPVOTE_API_URL is missing on the data panel!');
+  console.error('   Set it to your voting project URL, e.g. https://snapvote-voting.vercel.app\n');
+  process.exit(1);
+}
+
+const lines = [
+  `window.SNAPVOTE_API_URL = ${JSON.stringify(apiUrl)};`,
   `window.SNAPVOTE_VOTING_URL = ${JSON.stringify(votingUrl)};`,
   '',
-].join('\n');
+];
 
-fs.writeFileSync(path.join(__dirname, '..', 'config.js'), content);
-console.log('config.js → SNAPVOTE_WS_URL =', wsUrl || '(empty)');
-console.log('config.js → SNAPVOTE_VOTING_URL =', votingUrl || '(empty)');
+fs.writeFileSync(path.join(__dirname, '..', 'config.js'), lines.join('\n'));
+console.log('config.js → SNAPVOTE_API_URL =', apiUrl);

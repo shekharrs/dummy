@@ -1,14 +1,15 @@
 {
-  "name": "snapvote",
+  "name": "snapchat-vote",
   "version": "1.0.0",
-  "description": "SnapVote — live batch voting with WebSocket updates",
+  "description": "SnapVote — live batch voting",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "cross-env DATA_PORT=3002 node server.js",
+    "dev": "cross-env PORT=3000 DATA_PORT=3002 node server.js",
     "sync:deploy": "node scripts/sync-deploy.js"
   },
   "dependencies": {
+    "@vercel/kv": "^3.0.0",
     "express": "^4.21.0",
     "ws": "^8.18.0"
   },
